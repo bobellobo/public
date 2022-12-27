@@ -159,7 +159,7 @@ function rightSouthMostMarble() {
 }
 
 function objInDir(thisMarble, dir) {
-  return board[thisMarble[dir]];
+  return board[thisMarble[dir]] ?? {} ;
 }
 
 function leftNorthMostMarble() {
@@ -263,12 +263,9 @@ function moveMarbles(direction) {
   console.log('dernière bille de la rangée : ', board[lastMarbleIndex])
   var nextMarble = objInDir(board[lastMarbleIndex],direction)
   if(nextMarble.marble === whoseTurn*(-1)){
-    console.log('SHOVE')
     marbleToShove = countMarbleToShove(lastMarbleIndex, direction)
-    console.log('marbles to shove : ', marbleToShove)
     for(var i = 0;i<=marbleToShove;i++){
       nextMarble.marble = whoseTurn*(-1);
-      lastMarbleIndex = objInDir(nextMarble, direction).index
       nextMarble = objInDir(nextMarble, direction)
     }
   }
@@ -303,7 +300,7 @@ function countMarbleToShove(lastMarbleIndex, direction){
   nextMarble = objInDir(board[lastMarbleIndex],direction)
 
   for(i=0;i<selectedMarbles.length;i++){
-    if(isOpponentMarble(nextMarble)){
+    if(nextMarble!==null && isOpponentMarble(nextMarble)){
       count+=1;
     }
     nextMarble = objInDir(nextMarble, direction)
@@ -312,22 +309,15 @@ function countMarbleToShove(lastMarbleIndex, direction){
 }
 
 function isOpponentMarble(marble){
-  return marble.marble==whoseTurn*(-1)
+  console.log('marble : ', marble)
+  return marble!==undefined && marble.marble==whoseTurn*(-1)
 }
      
 
 function checkIfWon() {
-  remainingMarblesRed = [];
-  remainingMarblesBlue = [];
+  remainingMarblesRed = getRemainingRedMarblesIndexes();
+  remainingMarblesBlue = getRemainingBlueMarblesIndexes();
   //if there are fewer than nine of either color the game is won
-  board.forEach(function(idx) {
-    if (idx.marble === 1) {
-      remainingMarblesRed.push(board.indexOf(idx));
-    };
-    if (idx.marble === -1) {
-      remainingMarblesBlue.push(board.indexOf(idx));
-    };
-  });
   if (remainingMarblesBlue.length < 9) {
     alert('red wins');
     initBoard();
@@ -337,6 +327,30 @@ function checkIfWon() {
     initBoard();
     renderBoard();
   }
+}
+
+function getRemainingRedMarblesIndexes(){
+  var remainingMarbles = []
+  board.forEach(function(idx) {
+    if (idx.marble === 1) {
+      remainingMarbles.push(board.indexOf(idx));
+    };
+  });
+  return remainingMarbles;
+}
+
+function getRemainingBlueMarblesIndexes(){
+  var remainingMarbles = []
+  board.forEach(function(idx) {
+    if (idx.marble === -1) {
+      remainingMarbles.push(board.indexOf(idx));
+    };
+  });
+  return remainingMarbles;
+}
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
 }
 
 ////////
@@ -369,6 +383,9 @@ function renderBoard() {
       $cellEl.addClass('p1');
     } else if (cell.marble === -1) {
       $cellEl.addClass('p2');
+    }
+    else if(cell.marble === 2){
+      $cellEl.addClass('highlight');
     }
   });
   renderArrows();
@@ -432,9 +449,9 @@ $('.rotate').on('click', function(evt) {
   $('#board').toggleClass('rotateboard');
 });
 
-$('.test').on('click', (evt)=>{
-  makeAIPlay();
-})
+// $('.test').on('click', (evt)=>{
+//   makeAIPlay();
+// })
 
 initializeGame();
 
@@ -450,11 +467,20 @@ function isAITurn(){
 function makeAIPlay(){
   // HAS TO RETURN BEST MOVE ACCORDING TO MIN MAX ALGORITHM
   if(whoseTurn==1){
-    // pickup a random number between 1 and 3
-
+    // pick a random marble amongst AIs marbles: 
+    var redMarblesIndexes = getRemainingRedMarblesIndexes();
+    var randomIndex = getRandomInt(redMarblesIndexes.length)
+    var marbleIndex = redMarblesIndexes[randomIndex]
+    var marble = board[marbleIndex];
+    marble.marble = 2
     // pick a random amount of marbles
+    howManyMarbles = getRandomInt(3);
     // chose a random direction
+    randomDirection = directions[getRandomInt(directions.length)];
+    console.log(randomDirection)
+    //moveMarbles(marble,'w')
     // evaluate 
+    renderBoard()
 
   }
   else {
