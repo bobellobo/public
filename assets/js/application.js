@@ -13,7 +13,6 @@ var gutter;
 var remainingMarblesRed ;
 var remainingMarblesBlue;
 var directions = ['nw', 'ne', 'e', 'se', 'sw', 'w'];
-var owners = [0, 1, -1, 0, 0];
 var db = new Firebase("https://abalone-game.firebaseio.com/");
 
 ////////
@@ -102,18 +101,14 @@ var initializeGame = function() {
   renderBoard();
 };
 
-function jumbleBoard() {
-  board.forEach(function(idx) {
-    idx.marble = owners[Math.floor(Math.random() * 5)];
-  });
-}
+
 
 
 ////////
 // Directional Functions
 ////////
 
-// gets the irection of the top of the row
+// gets the direction of the top of the row
 function getTopDir() {
   var cell2 = board[selectedMarbles[1]];
   if (cell2.nw === selectedMarbles[0]) {return 'nw';}
@@ -259,10 +254,23 @@ function findCellsClasses(arr) {
   }
 }
 
-//reverse the array depending ont he direction
+//reverse the array depending on the direction
 
 function moveMarbles(direction) {
-  console.log(direction);
+
+  console.clear()
+  var lastMarbleIndex = !(direction === 'ne' || direction === 'nw' || direction === 'w') ? selectedMarbles[selectedMarbles.length-1]:selectedMarbles[0];
+  console.log('dernière bille de la rangée : ', board[lastMarbleIndex])
+  var nextMarble = objInDir(board[lastMarbleIndex],direction)
+  if(nextMarble.marble === whoseTurn*(-1)){
+    console.log('SHOVE')
+    for(var i = 0;i<selectedMarbles.length;i++){
+      console.log('marble to be switched : ', nextMarble)
+      nextMarble.marble = whoseTurn*(-1);
+      lastMarbleIndex = objInDir(nextMarble, direction).index
+      nextMarble = objInDir(nextMarble, direction)
+    }
+  }
   if(direction === 'ne' || direction === 'nw' || direction === 'w') {
     // check if you're shoving a marble
     selectedMarbles.forEach(function(marbleIdx) {
@@ -271,9 +279,12 @@ function moveMarbles(direction) {
       board[marbleIdx].marble = 0;
      });
 
+     // BLOC POUR DEPLACER LES BILLES ADVERSES
+     //findMarblesToShove(direction)
+
   } else if (direction === 'sw' || direction === 'se' || direction === 'e') {
     //check if the cell is filled already
-    selectedMarbles = selectedMarbles;
+    
     for (var i = selectedMarbles.length - 1; i > -1; i--) {
       var nextIndex = board[selectedMarbles[i]][direction];
 
@@ -281,15 +292,31 @@ function moveMarbles(direction) {
 
       board[selectedMarbles[i]].marble = 0;
     }
+
+     // BLOC POUR DEPLACER LES BILLES ADVERSES
+     //findMarblesToShove(direction)
+
   } else {console.log('wtf')};
 
   // board[selectedMarbles[getTail()]].marble = 0;
   selectedMarbles = [];
-  db.update({board: board})
   whoseTurn *= -1;
-  db.update({whoseTurn: whoseTurn})
   renderBoard();
 };
+
+function findMarblesToShove(direction){
+  var lastMarbleIndex = !(direction === 'ne' || direction === 'nw' || direction === 'w') ? selectedMarbles[selectedMarbles.length-1]:selectedMarbles[0];
+  console.log('dernière bille de la rangée : ', board[lastMarbleIndex])
+  if(objInDir(board[lastMarbleIndex],direction).marble === whoseTurn*(-1)){
+    console.log('SHOVE')
+    console.log(whoseTurn)
+    for(var i = 0;i<selectedMarbles.length;i++){
+      objInDir(board[lastMarbleIndex], direction).marble = whoseTurn*(-1);
+      lastMarbleIndex = objInDir(board[lastMarbleIndex], direction).index
+    }
+  }
+
+}
 
 function checkIfWon() {
   remainingMarblesRed = [];
@@ -348,7 +375,9 @@ function renderBoard() {
   });
   renderArrows();
   checkIfWon();
-  renderValids();
+  renderValids();  
+  btn = $('#testBtn')
+  isAITurn() ? btn.hide() : btn.show();
 }
 
 function renderValids() {
@@ -395,10 +424,6 @@ $('.moveArrow').on('click', function(evt) {
   moveMarbles(direction);
 });
 
-$('.jumble').on('click', function(evt) {
-  jumbleBoard();
-  renderBoard();
-});
 
 $('.tilt').on('click', function(evt) {
   $('#board').toggleClass('boardtilt');
@@ -409,4 +434,21 @@ $('.rotate').on('click', function(evt) {
   $('#board').toggleClass('rotateboard');
 });
 
+$('.test').on('click', (evt)=>{
+  makeAIPlay();
+})
+
 initializeGame();
+
+
+////////////////////////////
+// AI 
+///////////////////////////
+
+function isAITurn(){
+  return whoseTurn==-1;
+} 
+
+function makeAIPlay(){
+  // HAS TO RETURN BEST MOVE ACCORDING TO MIN MAX ALGORITHM
+}
