@@ -264,8 +264,9 @@ function moveMarbles(direction) {
   var nextMarble = objInDir(board[lastMarbleIndex],direction)
   if(nextMarble.marble === whoseTurn*(-1)){
     console.log('SHOVE')
-    for(var i = 0;i<selectedMarbles.length;i++){
-      console.log('marble to be switched : ', nextMarble)
+    marbleToShove = countMarbleToShove(lastMarbleIndex, direction)
+    console.log('marbles to shove : ', marbleToShove)
+    for(var i = 0;i<=marbleToShove;i++){
       nextMarble.marble = whoseTurn*(-1);
       lastMarbleIndex = objInDir(nextMarble, direction).index
       nextMarble = objInDir(nextMarble, direction)
@@ -279,9 +280,6 @@ function moveMarbles(direction) {
       board[marbleIdx].marble = 0;
      });
 
-     // BLOC POUR DEPLACER LES BILLES ADVERSES
-     //findMarblesToShove(direction)
-
   } else if (direction === 'sw' || direction === 'se' || direction === 'e') {
     //check if the cell is filled already
     
@@ -293,30 +291,30 @@ function moveMarbles(direction) {
       board[selectedMarbles[i]].marble = 0;
     }
 
-     // BLOC POUR DEPLACER LES BILLES ADVERSES
-     //findMarblesToShove(direction)
 
   } else {console.log('wtf')};
-
-  // board[selectedMarbles[getTail()]].marble = 0;
   selectedMarbles = [];
   whoseTurn *= -1;
   renderBoard();
 };
 
-function findMarblesToShove(direction){
-  var lastMarbleIndex = !(direction === 'ne' || direction === 'nw' || direction === 'w') ? selectedMarbles[selectedMarbles.length-1]:selectedMarbles[0];
-  console.log('dernière bille de la rangée : ', board[lastMarbleIndex])
-  if(objInDir(board[lastMarbleIndex],direction).marble === whoseTurn*(-1)){
-    console.log('SHOVE')
-    console.log(whoseTurn)
-    for(var i = 0;i<selectedMarbles.length;i++){
-      objInDir(board[lastMarbleIndex], direction).marble = whoseTurn*(-1);
-      lastMarbleIndex = objInDir(board[lastMarbleIndex], direction).index
-    }
-  }
+function countMarbleToShove(lastMarbleIndex, direction){
+  var count = 0;
+  nextMarble = objInDir(board[lastMarbleIndex],direction)
 
+  for(i=0;i<selectedMarbles.length;i++){
+    if(isOpponentMarble(nextMarble)){
+      count+=1;
+    }
+    nextMarble = objInDir(nextMarble, direction)
+  }
+  return count
 }
+
+function isOpponentMarble(marble){
+  return marble.marble==whoseTurn*(-1)
+}
+     
 
 function checkIfWon() {
   remainingMarblesRed = [];
@@ -451,4 +449,15 @@ function isAITurn(){
 
 function makeAIPlay(){
   // HAS TO RETURN BEST MOVE ACCORDING TO MIN MAX ALGORITHM
+  if(whoseTurn==1){
+    // pickup a random number between 1 and 3
+
+    // pick a random amount of marbles
+    // chose a random direction
+    // evaluate 
+
+  }
+  else {
+    console.log('error wrong turn')
+  }
 }
